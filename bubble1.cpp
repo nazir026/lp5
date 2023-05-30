@@ -1,61 +1,51 @@
-#include<iostream>
-#include<stdlib.h>
-#include<omp.h>
+#include <iostream>
+#include <omp.h>
+
 using namespace std;
 
-void bubble(int *, int);
-void swap(int &, int &);
-
-
-void bubble(int *a, int n)
-{
-    for(  int i = 0;  i < n;  i++ )
-     {
-   	 int first = i % 2;
-
-   	 #pragma omp parallel for shared(a,first)
-   	 for(  int j = first;  j < n-1;  j += 2  )
-   	   {
-   		 if(  a[ j ]  >  a[ j+1 ]  )
-   		  {
-     			 swap(  a[ j ],  a[ j+1 ]  );
-   		  }
-   		   }
-     }
+void bubbleSort(int arr[], int n){
+	int i, j;
+	bool swapped;
+	
+	for(i=0; i<n-1; i++){
+		swapped = false;
+	
+		#pragma omp parallel for shared(arr, n, swapped)
+		for(j=0; j<n-i-1; j++){
+			if(arr[j]>arr[j+1]){
+				#pragma omp critical
+				{
+					swap(arr[j], arr[j+1]);
+					swapped = true;
+				}			
+			}
+		}
+			
+		if(!swapped){
+			break;
+		}	
+	}
 }
 
 
-void swap(int &a, int &b)
-{
+int main(){
+	int n;
+	cout << "Enter length of array: " << endl;
+	cin >> n;
 
-    int test;
-    test=a;
-    a=b;
-    b=test;
+	int arr[n];
+	cout << "Enter array elements: " << endl;
+	
+	for(int i=0; i<n; i++){
+		cin >> arr[i];
+	}
+	
+	bubbleSort(arr, n);
+	
+	cout << "Sorted array is: " << endl;
+	for(int i=0; i<n; i++){
+		cout << arr[i]<<" ";
+	}
 
-}
-
-int main()
-{
-
-    int *a,n;
-    cout<<"\n enter total no of elements=>";
-    cin>>n;
-    a=new int[n];
-    cout<<"\n enter elements=>";
-    for(int i=0;i<n;i++)
-    {
-   	 cin>>a[i];
-    }
-
-    bubble(a,n);
-
-    cout<<"\n sorted array is=>";
-    for(int i=0;i<n;i++)
-    {
-   	 cout<<a[i]<<endl;
-    }
-
-
-return 0;
+	return 0;
 }
